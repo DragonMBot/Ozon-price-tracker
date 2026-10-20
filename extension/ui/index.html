@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Анализ цен на Ozon</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main class="app-shell">
+    <section id="auth-view" class="auth-layout" aria-labelledby="auth-title">
+      <div class="auth-brand">
+        <div class="brand-mark" aria-hidden="true">₽</div>
+        <p class="eyebrow">ЛОКАЛЬНЫЙ ТРЕКЕР ЦЕН</p>
+        <h1 id="auth-title">Покупайте<br>в нужный момент</h1>
+        <p class="muted auth-intro">Сохраняйте товары Ozon и следите за изменением цены в динамике.</p>
+        <div class="feature-line"><span class="feature-dot"></span> История цен на вашем компьютере</div>
+        <div class="feature-line"><span class="feature-dot"></span> Автообновление каждые 12 часов</div>
+      </div>
+      <div class="auth-card">
+        <div class="auth-tabs" role="tablist" aria-label="Вход или регистрация">
+          <button id="login-mode" class="auth-tab is-active" type="button" role="tab" aria-selected="true">Вход</button>
+          <button id="register-mode" class="auth-tab" type="button" role="tab" aria-selected="false">Регистрация</button>
+        </div>
+        <h2 id="auth-card-title">С возвращением</h2>
+        <p id="auth-subtitle" class="muted">Войдите, чтобы открыть список товаров.</p>
+        <form id="auth-form" novalidate>
+          <label for="auth-email">Email</label>
+          <input id="auth-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" maxlength="254" required>
+          <label for="auth-password">Пароль</label>
+          <input id="auth-password" name="password" type="password" autocomplete="current-password" placeholder="Не менее 8 символов" minlength="8" maxlength="128" required>
+          <div id="confirm-password-wrap" class="hidden">
+            <label for="auth-confirm-password">Повторите пароль</label>
+            <input id="auth-confirm-password" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Введите пароль ещё раз" minlength="8" maxlength="128">
+          </div>
+          <button id="auth-submit" class="button button-primary button-wide" type="submit">Войти</button>
+        </form>
+        <p id="auth-message" class="message" aria-live="polite"></p>
+        <div id="server-status" class="server-status"><span class="status-dot"></span><span>Проверка локального сервера…</span></div>
+        <p class="fine-print">Аккаунт и история хранятся локально. Не используйте пароль от других сервисов.</p>
+      </div>
+    </section>
+
+    <section id="dashboard-view" class="dashboard hidden" aria-labelledby="dashboard-title">
+      <header class="topbar">
+        <div class="brand-inline">
+          <div class="brand-mark brand-mark-small" aria-hidden="true">₽</div>
+          <div><p class="eyebrow">OZON PRICE TRACKER</p><h1 id="dashboard-title">Мои товары</h1></div>
+        </div>
+        <div class="topbar-actions">
+          <span id="current-user" class="user-pill"></span>
+          <button id="run-checks-button" class="button button-secondary" type="button">Проверить приложение</button>
+          <button id="logout-button" class="button button-quiet" type="button">Выйти</button>
+        </div>
+      </header>
+      <section class="summary-row" aria-label="Сводка">
+        <div class="summary-card"><span class="summary-label">Отслеживается</span><strong id="summary-count">0 товаров</strong></div>
+        <div class="summary-card"><span class="summary-label">Обновление цен</span><strong>Каждые 12 часов</strong></div>
+        <div class="summary-card"><span class="summary-label">Хранилище</span><strong>Локальная база</strong></div>
+      </section>
+      <section class="products-section">
+        <div class="section-heading">
+          <div><h2>Список товаров</h2><p class="muted">Откройте график, чтобы изучить динамику цены.</p></div>
+          <button id="add-product-button" class="button button-primary" type="button"><span aria-hidden="true">＋</span> Добавить товар</button>
+        </div>
+        <div id="dashboard-message" class="message" aria-live="polite"></div>
+        <div id="products-list" class="products-list"></div>
+        <div id="empty-state" class="empty-state hidden">
+          <div class="empty-icon" aria-hidden="true">↗</div>
+          <h3>Пока нет товаров</h3>
+          <p class="muted">Добавьте товар по его ID на Ozon — после успешного поиска он появится здесь.</p>
+          <button id="empty-add-button" class="button button-secondary" type="button">＋ Добавить первый товар</button>
+        </div>
+      </section>
+      <footer class="dashboard-footer"><span>Данные доступны только на этом компьютере.</span><button id="refresh-list-button" class="text-button" type="button">Обновить список</button></footer>
+    </section>
+  </main>
+
+  <div id="add-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="add-modal-title">
+    <button class="modal-backdrop" type="button" data-close-modal="add-modal" aria-label="Закрыть"></button>
+    <div class="modal-panel modal-small">
+      <div class="modal-heading"><div><p class="eyebrow">НОВЫЙ ТОВАР</p><h2 id="add-modal-title">Добавить с Ozon</h2></div><button class="icon-button" type="button" data-close-modal="add-modal" aria-label="Закрыть">×</button></div>
+      <p class="muted">Введите числовой ID товара из ссылки на карточку Ozon. Мы попробуем получить название и текущую цену.</p>
+      <form id="add-product-form">
+        <label for="ozon-id">ID товара</label>
+        <input id="ozon-id" name="ozonId" inputmode="numeric" autocomplete="off" pattern="[0-9]{5,24}" minlength="5" maxlength="24" placeholder="Например, 123456789" required>
+        <p class="hint">Цена будет сохранена только тогда, когда её удастся надёжно прочитать со страницы.</p>
+        <div class="modal-actions"><button class="button button-quiet" type="button" data-close-modal="add-modal">Отмена</button><button id="find-product-button" class="button button-primary" type="submit">Найти товар</button></div>
+      </form>
+      <p id="add-product-message" class="message" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <div id="chart-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="chart-title">
+    <button class="modal-backdrop" type="button" data-close-modal="chart-modal" aria-label="Закрыть"></button>
+    <div class="modal-panel modal-chart">
+      <div class="modal-heading chart-heading"><div><p class="eyebrow">ИСТОРИЯ ЦЕНЫ</p><h2 id="chart-title">График товара</h2><a id="chart-product-link" class="external-link" href="https://www.ozon.ru/" target="_blank" rel="noopener noreferrer">Открыть на Ozon ↗</a></div><button class="icon-button" type="button" data-close-modal="chart-modal" aria-label="Закрыть">×</button></div>
+      <div class="chart-controls" role="group" aria-label="Период графика">
+        <button class="range-button" type="button" data-days="7" aria-pressed="false">7 дней</button>
+        <button class="range-button is-active" type="button" data-days="30" aria-pressed="true">30 дней</button>
+        <button class="range-button" type="button" data-days="180" aria-pressed="false">180 дней</button>
+      </div>
+      <div id="chart-stats" class="chart-stats"></div>
+      <div id="chart-area" class="chart-area">
+        <div id="chart-loading" class="chart-loading hidden">Загружаем историю цены…</div>
+        <svg id="price-chart" class="price-chart" viewBox="0 0 900 350" role="img" aria-label="График изменения цены"></svg>
+        <div id="chart-tooltip" class="chart-tooltip hidden" role="status"><strong id="tooltip-price"></strong><span id="tooltip-date"></span></div>
+      </div>
+      <p id="chart-message" class="message" aria-live="polite"></p>
+      <div class="chart-legend"><span class="legend-line"></span> Цена на момент проверки <span class="legend-note">Точка показывает дату и точное время сохранённого измерения</span></div>
+    </div>
+  </div>
+
+  <div id="tests-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="tests-modal-title">
+    <button class="modal-backdrop" type="button" data-close-modal="tests-modal" aria-label="Закрыть"></button>
+    <div class="modal-panel modal-tests">
+      <div class="modal-heading">
+        <div><p class="eyebrow">ЛОКАЛЬНАЯ ДИАГНОСТИКА</p><h2 id="tests-modal-title">Проверка приложения</h2></div>
+        <button class="icon-button" type="button" data-close-modal="tests-modal" aria-label="Закрыть">×</button>
+      </div>
+      <p class="muted">Проверки не запускают парсер и не обращаются к Ozon. Для графиков в базу будут добавлены три явно помеченных фиктивных товара с историей цен. Они останутся в базе до ручного удаления.</p>
+      <form id="tests-form">
+        <label for="tests-email">Email аккаунта для тестовых данных</label>
+        <input id="tests-email" name="email" type="email" autocomplete="email" maxlength="254" required>
+        <p class="hint">Для безопасности email должен совпадать с аккаунтом, в который вы вошли. Чтобы подготовить данные для другого аккаунта, запустите scripts/run_checks.py.</p>
+        <div class="modal-actions"><button class="button button-quiet" type="button" data-close-modal="tests-modal">Закрыть</button><button id="start-tests-button" class="button button-primary" type="submit">Запустить проверки</button></div>
+      </form>
+      <p id="tests-message" class="message" aria-live="polite"></p>
+      <div id="tests-results" class="test-results" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

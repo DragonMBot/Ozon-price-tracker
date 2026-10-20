@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Анализ цен на Ozon",
+  "version": "1.0.0",
+  "description": "Локальное отслеживание цен и истории товаров с Ozon.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "http://127.0.0.1:8765/*",
+    "http://localhost:8765/*"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "action": {
+    "default_title": "Открыть анализ цен Ozon"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "ozon-price-tracker@example.org",
+      "strict_min_version": "121.0"
+    }
+  }
+}
